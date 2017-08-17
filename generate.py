@@ -2,9 +2,10 @@
 
 from lib.random import RandomGenerator
 from lib.res import load_file
-from lib.apps import next_popular_app
+from lib.apps import next_popular_app, events_per_session_gen, random_inapp_event, revenue_gen
 from lib.ad_networks import next_popular_adnetwork
 from lib.campaigns import random_campaign, init_campaigns
+from lib.sites import next_random_siteid
 import numpy
 import scipy.stats
 import random
@@ -32,29 +33,30 @@ next_user_retention_coeff = user_retention_coeff_gen()
 def send_event(env, event_type, info):
   """Generates events from the info, and outputs it"""
   event = info.copy()
-  event["event_time"] = env.now
+  event["event_time"] = env.now * 1000L
   event["event_type"] = event_type
   print json.dumps(event)
 
 def engagements(env, options, frequency=100):
   """Generates new possible engagements based on random user and application"""
   while True:
-    app_id, nonorg_probability, session_delay = next_popular_app()
+    app_id, nonorg_probability, session_delay, events_indices = next_popular_app()
     info = {
       "user_id": random.getrandbits(32),
       "app_id": app_id,
       "organic": random.random() > nonorg_probability
     }
-    env.process(engagement(env, options, session_delay, info))
+    env.process(engagement(env, options, session_delay, events_indices, info))
     yield env.timeout(frequency)
 
-def engagement(env, options, session_delay, info):
+def engagement(env, options, session_delay, events_indices, info):
   """Proceed through the engagement process, and generate activity"""
 
   if not info["organic"]:
     event_type = "click" if random.random() < options.ctr else "impression"
     info["ad_network"] = next_popular_adnetwork()
     info["campaign"] = str(random_campaign(env.now))
+    info["site_id"] = next_random_siteid()
     send_event(env, event_type, info)
 
   yield env.timeout(engagement_delay())
@@ -70,6 +72,15 @@ def engagement(env, options, session_delay, info):
 
   while total_seconds > 0:
     send_event(env, "session", info)
+
+    for e in range(events_per_session_gen()):
+      inapp_delay = random.randint(3, 20)
+      yield env.timeout(inapp_delay)
+      inapp_info = info.copy()
+      inapp_info["revenue"] = revenue_gen()
+      inapp_info["event_name"] = random_inapp_event(events_indices)
+      send_event(env, "inappevent", inapp_info)
+      total_seconds -= inapp_delay
 
     total_seconds -= session_delay
     yield env.timeout(session_delay)

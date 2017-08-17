@@ -8,9 +8,9 @@ ADD repositories /etc/apk/repositories
 RUN apk add --no-cache --update \
       python2 \
       py2-pip \
-      py2-numpy@community
-
-RUN pip --no-cache-dir install \
+      py2-scipy \
+      py2-numpy \
+    && pip --no-cache-dir install \
       simpy \
       pytz
 
