@@ -85,6 +85,6 @@ There's Docker image that has all the needed environment, and runs the script fo
 To have it produce JSON events via standard output, run:
 
 ```bash
-docker run -ti viyadb/events-generator
+docker run --log-driver=none -ti viyadb/events-generator
 ```
 
