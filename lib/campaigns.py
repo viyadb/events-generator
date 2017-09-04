@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from lib.random import WeightedRandomGenerator, RandomGenerator
+from lib.countries import random_country
 import numpy
 import random
 
@@ -22,6 +23,7 @@ class Campaign(object):
     self.idx = idx
     self.start_date = days_from_epoch(time_now)
     self.length = random_campaign_length()
+    self.country = random_country()
 
   def update(self, time_now):
     new_date = days_from_epoch(time_now)

@@ -6,6 +6,7 @@ from lib.apps import next_popular_app, events_per_session_gen, random_inapp_even
 from lib.ad_networks import next_popular_adnetwork
 from lib.campaigns import random_campaign, init_campaigns
 from lib.sites import next_random_siteid
+from lib.countries import random_country
 import numpy
 import scipy.stats
 import random
@@ -55,9 +56,13 @@ def engagement(env, options, session_delay, events_indices, info):
   if not info["organic"]:
     event_type = "click" if random.random() < options.ctr else "impression"
     info["ad_network"] = next_popular_adnetwork()
-    info["campaign"] = str(random_campaign(env.now))
+    campaign = random_campaign(env.now)
+    info["campaign"] = str(campaign)
+    info["country"] = campaign.country
     info["site_id"] = next_random_siteid()
     send_event(env, event_type, info)
+  else:
+    info["country"] = random_country()
 
   yield env.timeout(engagement_delay())
 
