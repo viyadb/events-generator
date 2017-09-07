@@ -6,7 +6,8 @@ from lib.apps import next_popular_app, events_per_session_gen, random_inapp_even
 from lib.ad_networks import next_popular_adnetwork
 from lib.campaigns import random_campaign, init_campaigns
 from lib.sites import next_random_siteid
-from lib.countries import random_country
+from lib.countries import random_country, random_city
+from lib.devices import random_device
 import numpy
 import scipy.stats
 import random
@@ -42,9 +43,12 @@ def engagements(env, options, frequency=100):
   """Generates new possible engagements based on random user and application"""
   while True:
     app_id, nonorg_probability, session_delay, events_indices = next_popular_app()
+    device = random_device()
     info = {
       "user_id": random.getrandbits(32),
       "app_id": app_id,
+      "device_type": device.name,
+      "device_vendor": device.vendor(),
       "organic": random.random() > nonorg_probability
     }
     env.process(engagement(env, options, session_delay, events_indices, info))
@@ -58,11 +62,13 @@ def engagement(env, options, session_delay, events_indices, info):
     info["ad_network"] = next_popular_adnetwork()
     campaign = random_campaign(env.now)
     info["campaign"] = str(campaign)
-    info["country"] = campaign.country
+    country = campaign.country
     info["site_id"] = next_random_siteid()
     send_event(env, event_type, info)
   else:
-    info["country"] = random_country()
+    country = random_country()
+  info["country"] = country
+  info["city"] = random_city(country)
 
   yield env.timeout(engagement_delay())
 
