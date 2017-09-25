@@ -51,9 +51,20 @@ There are multiple coefficients taken into account when generating events:
  * App popularity
  * User activity and retention rate per app
 
-## Usage
+## Running
 
-### Prerequisites
+### Using Docker image
+
+There's Docker image that has all the needed environment, and runs the script for you.
+To have it produce JSON events to standard output, run:
+
+```bash
+docker run --log-driver=none --rm -ti viyadb/events-generator
+```
+
+### Without Docker
+
+#### Prerequisites
 
 To run Docker image, please skip to the [Using Docker image](#using-docker-image) section below.
 Otherwise, please make sure you have the following dependencies installed on your computer.
@@ -63,7 +74,7 @@ Otherwise, please make sure you have the following dependencies installed on you
  * [NumPy](http://www.numpy.org/) >= 1.12.1
  * [SciPy](https://scipy.org/) >= 0.19.1
 
-### Configuration
+#### Configuration
 
 To list all available options, please run:
 
@@ -71,20 +82,9 @@ To list all available options, please run:
 ./generate.py --help
 ```
 
-### Running
-
-#### Generating JSON events
+#### Generating events
 
 ```bash
 ./generate.py
-```
-
-#### Using Docker image
-
-There's Docker image that has all the needed environment, and runs the script for you.
-To have it produce JSON events via standard output, run:
-
-```bash
-docker run --log-driver=none -ti viyadb/events-generator
 ```
 
