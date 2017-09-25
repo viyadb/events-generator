@@ -55,19 +55,25 @@ There are multiple coefficients taken into account when generating events:
 
 ### Using Docker image
 
+This is the simplest way for running the script.
 There's Docker image that has all the needed environment, and runs the script for you.
 To have it produce JSON events to standard output, run:
 
 ```bash
-docker run --log-driver=none --rm -ti viyadb/events-generator
+docker run --log-driver=none --rm -ti viyadb/events-generator:latest
+```
+
+For example, to have your Kafka populated with generated events run:
+
+```bash
+docker run --log-driver=none --rm -ti viyadb/events-generator:latest | kafka-console-producer.sh --broker-list <kafka-broker>:9092 --topic <topic name>
 ```
 
 ### Without Docker
 
 #### Prerequisites
 
-To run Docker image, please skip to the [Using Docker image](#using-docker-image) section below.
-Otherwise, please make sure you have the following dependencies installed on your computer.
+Please make sure you have the following dependencies installed on your computer.
 
  * Python 2.7
  * [SimPy](http://simpy.readthedocs.io/en/latest/) >= 3.0.10
