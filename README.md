@@ -55,7 +55,6 @@ There are multiple coefficients taken into account when generating events:
 
 ### Using Docker image
 
-This is the simplest way for running the script.
 There's Docker image that has all the needed environment, and runs the script for you.
 To have it produce JSON events to standard output, run:
 
