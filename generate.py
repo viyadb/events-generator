@@ -8,6 +8,7 @@ from lib.campaigns import random_campaign, init_campaigns
 from lib.sites import next_random_siteid
 from lib.countries import random_country, random_city
 from lib.devices import random_device
+import os
 import numpy
 import scipy.stats
 import random
@@ -32,12 +33,40 @@ def user_retention_coeff_gen():
 
 next_user_retention_coeff = user_retention_coeff_gen()
 
-def send_event(env, event_type, info):
+def print_event_json(event):
+  print json.dumps(event)
+
+event_fields = [
+  ["app_id",        ""],
+  ["user_id",       ""],
+  ["event_time",    ""],
+  ["country",       ""],
+  ["city",          ""],
+  ["device_type",   ""],
+  ["device_vendor", ""],
+  ["ad_network",    ""],
+  ["campaign",      ""],
+  ["site_id",       ""],
+  ["event_type",    ""],
+  ["event_name",    ""],
+  ["organic",       "False"],
+  ["revenue",       "0"]
+]
+
+def print_tsv_header():
+  print u"\t".join([f for f, _ in event_fields])
+  print_tsv_header.func_code = (lambda:None).func_code
+
+def print_event_tsv(event):
+  print_tsv_header()
+  print u"\t".join([str(event.get(f, d)) for f, d in event_fields])
+
+def send_event(options, env, event_type, info):
   """Generates events from the info, and outputs it"""
   event = info.copy()
   event["event_time"] = env.now * 1000L
   event["event_type"] = event_type
-  print json.dumps(event)
+  options.output_format(event)
 
 def engagements(env, options, frequency=100):
   """Generates new possible engagements based on random user and application"""
@@ -58,13 +87,13 @@ def engagement(env, options, session_delay, events_indices, info):
   """Proceed through the engagement process, and generate activity"""
 
   if not info["organic"]:
-    event_type = "click" if random.random() < options.ctr else "impression"
+    event_type = "click" if random.random() < options.click_through_rate else "impression"
     info["ad_network"] = next_popular_adnetwork()
     campaign = random_campaign(env.now)
     info["campaign"] = str(campaign)
     country = campaign.country
     info["site_id"] = next_random_siteid()
-    send_event(env, event_type, info)
+    send_event(options, env, event_type, info)
   else:
     country = random_country()
   info["country"] = country
@@ -72,7 +101,7 @@ def engagement(env, options, session_delay, events_indices, info):
 
   yield env.timeout(engagement_delay())
 
-  send_event(env, "install", info)
+  send_event(options, env, "install", info)
 
   user_retention_coeff = next_user_retention_coeff()
   retention_days = 100 * user_retention_coeff
@@ -82,7 +111,7 @@ def engagement(env, options, session_delay, events_indices, info):
   total_seconds = retention_days * 86400
 
   while total_seconds > 0:
-    send_event(env, "session", info)
+    send_event(options, env, "session", info)
 
     for e in range(events_per_session_gen()):
       inapp_delay = random.randint(3, 20)
@@ -90,7 +119,7 @@ def engagement(env, options, session_delay, events_indices, info):
       inapp_info = info.copy()
       inapp_info["revenue"] = revenue_gen()
       inapp_info["event_name"] = random_inapp_event(events_indices)
-      send_event(env, "inappevent", inapp_info)
+      send_event(options, env, "inappevent", inapp_info)
       total_seconds -= inapp_delay
 
     total_seconds -= session_delay
@@ -100,27 +129,43 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(usage="usage: %(prog)s [options]", version="%(prog)s 1.0")
 
   parser.add_argument("-c", "--click-through-rate",
-      dest="ctr",
+      dest="click_through_rate",
       type=float,
-      default=0.005,
+      default=float(os.getenv("CLICK_THROUGH_RATE", "0.005")),
       help="Click-through rate")
 
   parser.add_argument("-r", "--campaigns-number",
       dest="campaigns_num",
       type=int,
-      default=10000,
+      default=int(os.getenv("CAMPAIGNS_NUMBER", "10000")),
       help="Number of running campaigns at any time")
+
+  def parse_datetime(d):
+    return datetime.datetime.strptime(d, "%Y-%m-%d").replace(tzinfo=pytz.UTC)
 
   parser.add_argument("-s", "--start-date",
       dest="start_date",
       help="Events start date in format YYYY-MM-DD",
-      default=datetime.datetime(2015, 01, 01, 0, 0, 0, 0, pytz.UTC),
-      type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d').replace(tzinfo=pytz.UTC))
+      default=parse_datetime(os.getenv("START_DATE", "2015-01-01")),
+      type=parse_datetime)
+
+  def parse_output_format(f):
+    if f == "json":
+      return print_event_json
+    if f == "tsv":
+      return print_event_tsv
+    raise "Unsupported output format: %s" % f
+
+  parser.add_argument("-f", "--output-format",
+      dest="output_format",
+      help="Supported formats are: json, tsv",
+      default=os.getenv("OUTPUT_FORMAT", "json"),
+      type=parse_output_format)
 
   options = parser.parse_args()
 
   env = simpy.Environment(
-    initial_time = long((options.start_date - datetime.datetime(1970, 1, 1, 0, 0, 0, 0, pytz.UTC)).total_seconds())
+    initial_time = long((options.start_date - datetime.datetime(1970, 1, 1, 0, 0, 0, 0, pytz.UTC)).total_seconds()),
   )
   init_campaigns(env.now, options.campaigns_num)
   env.process(engagements(env, options))

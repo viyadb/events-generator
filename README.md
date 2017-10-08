@@ -68,6 +68,23 @@ For example, to have your Kafka populated with generated events run:
 docker run --log-driver=none --rm -ti viyadb/events-generator:latest | kafka-console-producer.sh --broker-list <kafka-broker>:9092 --topic <topic name>
 ```
 
+#### Configuration
+
+To configure events generator behavior when running in Docker use the following environment variables:
+
+| Environment Variable | Description  | Default value |
+| -------------------- | ------------ | ------------- |
+| CLICK\_THROUGH\_RATE | Click-through rate | 0.005 |
+| CAMPAIGNS\_NUM | Number of running campaigns at any time | 10000 |
+| START\_DATE | Events start date in format YYYY-MM-DD | 2015-01-01 |
+| OUTPUT\_FORMAT | Events output format. Supported formats: json, tsv | json |
+
+For example, to have events generator produce content in TSV format use:
+
+```bash
+docker run --log-driver=none --rm -ti -e OUTPUT\_FORMAT=tsv viyadb/events-generator:latest
+```
+
 ### Without Docker
 
 #### Prerequisites
