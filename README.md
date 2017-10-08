@@ -78,6 +78,7 @@ To configure events generator behavior when running in Docker use the following 
 | CAMPAIGNS\_NUM | Number of running campaigns at any time | 10000 |
 | START\_DATE | Events start date in format YYYY-MM-DD | 2015-01-01 |
 | OUTPUT\_FORMAT | Events output format. Supported formats: json, tsv | json |
+| OUTPUT\_HEADER | Whether to print TSV header | False |
 
 For example, to have events generator produce content in TSV format use:
 

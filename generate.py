@@ -33,9 +33,6 @@ def user_retention_coeff_gen():
 
 next_user_retention_coeff = user_retention_coeff_gen()
 
-def print_event_json(event):
-  print json.dumps(event)
-
 event_fields = [
   ["app_id",        ""],
   ["user_id",       ""],
@@ -57,16 +54,20 @@ def print_tsv_header():
   print u"\t".join([f for f, _ in event_fields])
   print_tsv_header.func_code = (lambda:None).func_code
 
-def print_event_tsv(event):
-  print_tsv_header()
+def print_event_tsv(options, event):
+  if options.output_header:
+    print_tsv_header()
   print u"\t".join([str(event.get(f, d)) for f, d in event_fields])
+
+def print_event_json(options, event):
+  print json.dumps(event)
 
 def send_event(options, env, event_type, info):
   """Generates events from the info, and outputs it"""
   event = info.copy()
   event["event_time"] = env.now * 1000L
   event["event_type"] = event_type
-  options.output_format(event)
+  options.output_format(options, event)
 
 def engagements(env, options, frequency=100):
   """Generates new possible engagements based on random user and application"""
@@ -161,6 +162,12 @@ if __name__ == '__main__':
       help="Supported formats are: json, tsv",
       default=os.getenv("OUTPUT_FORMAT", "json"),
       type=parse_output_format)
+
+  parser.add_argument("-H", "--output-header",
+      dest="output_header",
+      help="Whether to output TSV header",
+      default=os.getenv("OUTPUT_HEADER") is not None,
+      action="store_true")
 
   options = parser.parse_args()
 
