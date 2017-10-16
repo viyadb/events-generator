@@ -27,10 +27,10 @@ def apps_generator(outliers=10):
   apps = [[name, nonorg_probability_gen(), session_delay_gen(), random_events_indices()]
       for name in load_file("apps.txt")]
   dist = numpy.random.beta(0.1, 8, len(apps))
-  popular_dist = 3
+  popular_dist = 5
   for i in range(outliers):
     dist[-(i+1)] = popular_dist
-    popular_dist -= 0.01
+    popular_dist -= 4 / outliers
   return WeightedRandomGenerator(apps, dist)
 
 next_popular_app = apps_generator()
