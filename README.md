@@ -69,7 +69,7 @@ There are multiple coefficients taken into account when generating events:
 | event\_name | In-app event name |
 | organic | Whether the install was organic or not (False or True) |
 | days\_from\_install | Number of days passed since install till event\_time |
-| revenue | Optional In-app event revenue |
+| revenue | Optional in-app event revenue in USD |
 
 ## Running
 
