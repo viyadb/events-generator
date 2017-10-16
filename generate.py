@@ -34,20 +34,21 @@ def user_retention_coeff_gen():
 next_user_retention_coeff = user_retention_coeff_gen()
 
 event_fields = [
-  ["app_id",        ""],
-  ["user_id",       ""],
-  ["event_time",    ""],
-  ["country",       ""],
-  ["city",          ""],
-  ["device_type",   ""],
-  ["device_vendor", ""],
-  ["ad_network",    ""],
-  ["campaign",      ""],
-  ["site_id",       ""],
-  ["event_type",    ""],
-  ["event_name",    ""],
-  ["organic",       "False"],
-  ["revenue",       "0"]
+  ["app_id",            ""],
+  ["user_id",           ""],
+  ["event_time",        ""],
+  ["country",           ""],
+  ["city",              ""],
+  ["device_type",       ""],
+  ["device_vendor",     ""],
+  ["ad_network",        ""],
+  ["campaign",          ""],
+  ["site_id",           ""],
+  ["event_type",        ""],
+  ["event_name",        ""],
+  ["organic",           "False"],
+  ["days_from_install", "0"],
+  ["revenue",           "0"]
 ]
 
 def print_tsv_header():
@@ -62,12 +63,16 @@ def print_event_tsv(options, event):
 def print_event_json(options, event):
   print json.dumps(event)
 
-def send_event(options, env, event_type, info):
+def send_event(options, env, event_type, info, install_time = None):
   """Generates events from the info, and outputs it"""
   event = info.copy()
-  event["event_time"] = env.now * 1000L
+  event_time = env.now * 1000L
+  event["event_time"] = event_time
   event["event_type"] = event_type
+  if install_time is not None:
+    event["days_from_install"] = int((event_time - install_time) / 86400000L)
   options.output_format(options, event)
+  return event_time
 
 def engagements(env, options, frequency=100):
   """Generates new possible engagements based on random user and application"""
@@ -102,7 +107,7 @@ def engagement(env, options, session_delay, events_indices, info):
 
   yield env.timeout(engagement_delay())
 
-  send_event(options, env, "install", info)
+  install_time = send_event(options, env, "install", info)
 
   user_retention_coeff = next_user_retention_coeff()
   retention_days = 100 * user_retention_coeff
@@ -112,7 +117,7 @@ def engagement(env, options, session_delay, events_indices, info):
   total_seconds = retention_days * 86400
 
   while total_seconds > 0:
-    send_event(options, env, "session", info)
+    send_event(options, env, "session", info, install_time)
 
     for e in range(events_per_session_gen()):
       inapp_delay = random.randint(3, 20)
@@ -120,7 +125,7 @@ def engagement(env, options, session_delay, events_indices, info):
       inapp_info = info.copy()
       inapp_info["revenue"] = revenue_gen()
       inapp_info["event_name"] = random_inapp_event(events_indices)
-      send_event(options, env, "inappevent", inapp_info)
+      send_event(options, env, "inappevent", inapp_info, install_time)
       total_seconds -= inapp_delay
 
     total_seconds -= session_delay

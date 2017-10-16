@@ -51,6 +51,26 @@ There are multiple coefficients taken into account when generating events:
  * App popularity
  * User activity and retention rate per app
 
+### Output Fields
+
+| Field Name | Description |
+|------------|-------------|
+| app\_id | Mobile application ID |
+| user\_id | 32-bit integer user ID (unique on a single app level) |
+| event\_time | Event time in milliseconds from epoch |
+| country | Two letter country code |
+| city | City name |
+| device\_type | Mobile device type (iOS, Android, etc.) |
+| device\_vendor | Mobile device vendor (HP, Asus, etc.) |
+| ad\_network | Ad network, which has led to the app install |
+| campaign | Ad campaign, which has led to the app install |
+| site\_id | Website that shown the original ad about the app |
+| event\_type | Event type (install, click, inapp, etc.) |
+| event\_name | In-app event name |
+| organic | Whether the install was organic or not (False or True) |
+| days\_from\_install | Number of days passed since install till event\_time |
+| revenue | Optional In-app event revenue |
+
 ## Running
 
 ### Using Docker image
