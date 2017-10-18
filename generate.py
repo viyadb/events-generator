@@ -8,6 +8,7 @@ from lib.campaigns import random_campaign, init_campaigns
 from lib.sites import next_random_siteid
 from lib.countries import random_country, random_city
 from lib.devices import random_device
+import sys
 import os
 import numpy
 import scipy.stats
@@ -72,6 +73,9 @@ def send_event(options, env, event_type, info, install_time = None):
   if install_time is not None:
     event["days_from_install"] = int((event_time - install_time) / 86400000L)
   options.output_format(options, event)
+  options.events_num = options.events_num - 1
+  if options.events_num == 0:
+    sys.exit(0)
   return event_time
 
 def engagements(env, options, frequency=100):
@@ -133,6 +137,12 @@ def engagement(env, options, session_delay, events_indices, info):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(usage="usage: %(prog)s [options]", version="%(prog)s 1.0")
+
+  parser.add_argument("-n", "--events-number",
+      dest="events_num",
+      type=int,
+      default=int(os.getenv("EVENTS_NUMBER", "-1")),
+      help="Number of events to generate")
 
   parser.add_argument("-c", "--click-through-rate",
       dest="click_through_rate",
