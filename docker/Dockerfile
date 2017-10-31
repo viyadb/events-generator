@@ -12,7 +12,8 @@ RUN apk add --no-cache --update \
       py2-numpy \
     && pip --no-cache-dir install \
       simpy \
-      pytz
+      pytz \
+    && apk del py2-pip 
 
 ADD tarball.tgz /opt
 
