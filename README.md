@@ -103,7 +103,7 @@ To configure events generator behavior when running in Docker use the following 
 For example, to have events generator produce content in TSV format use:
 
 ```bash
-docker run --log-driver=none --rm -ti -e OUTPUT\_FORMAT=tsv viyadb/events-generator:latest
+docker run --log-driver=none --rm -ti -e OUTPUT_FORMAT=tsv viyadb/events-generator:latest
 ```
 
 ### Without Docker
