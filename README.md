@@ -85,7 +85,8 @@ docker run --log-driver=none --rm -ti viyadb/events-generator:latest
 For example, to have your Kafka populated with generated events run:
 
 ```bash
-docker run --log-driver=none --rm -ti viyadb/events-generator:latest | kafka-console-producer.sh --broker-list <kafka-broker>:9092 --topic <topic name>
+docker run --log-driver=none --rm -ti viyadb/events-generator:latest | \
+  kafka-console-producer.sh --broker-list <kafka-broker>:9092 --topic <topic name>
 ```
 
 #### Configuration
@@ -94,6 +95,7 @@ To configure events generator behavior when running in Docker use the following 
 
 | Environment Variable | Description  | Default value |
 | -------------------- | ------------ | ------------- |
+| EVENTS_NUMBER | Total number of generated events | -1 |
 | CLICK\_THROUGH\_RATE | Click-through rate | 0.005 |
 | CAMPAIGNS\_NUM | Number of running campaigns at any time | 10000 |
 | START\_DATE | Events start date in format YYYY-MM-DD | 2015-01-01 |
@@ -103,7 +105,8 @@ To configure events generator behavior when running in Docker use the following 
 For example, to have events generator produce content in TSV format use:
 
 ```bash
-docker run --log-driver=none --rm -ti -e OUTPUT_FORMAT=tsv viyadb/events-generator:latest
+docker run --log-driver=none --rm -ti \
+  -e OUTPUT_FORMAT=tsv viyadb/events-generator:latest
 ```
 
 ### Without Docker
