@@ -96,18 +96,19 @@ def engagements(env, options, frequency=100):
 def engagement(env, options, session_delay, events_indices, info):
   """Proceed through the engagement process, and generate activity"""
 
-  if not info["organic"]:
+  if info["organic"]:
+    country = random_country()
+    info["country"] = country
+    info["city"] = random_city(country)
+  else:
     event_type = "click" if random.random() < options.click_through_rate else "impression"
     info["ad_network"] = next_popular_adnetwork()
     campaign = random_campaign(env.now)
     info["campaign"] = str(campaign)
-    country = campaign.country
+    info["country"] = campaign.country
+    info["city"] = random_city(campaign.country)
     info["site_id"] = next_random_siteid()
     send_event(options, env, event_type, info)
-  else:
-    country = random_country()
-  info["country"] = country
-  info["city"] = random_city(country)
 
   yield env.timeout(engagement_delay())
 

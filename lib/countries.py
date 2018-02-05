@@ -20,7 +20,7 @@ country_codes.extend(popular_countries)
 
 def country_generator():
   dist = numpy.random.beta(0.1, 8, len(country_codes))
-  popular_dist = 3
+  popular_dist = 3.0
   for i in range(len(popular_countries)):
     dist[-(i+1)] = popular_dist
     popular_dist -= 0.01
