@@ -59,7 +59,10 @@ def print_tsv_header():
 def print_event_tsv(options, event):
   if options.output_header:
     print_tsv_header()
-  print u"\t".join([str(event.get(f, d)) for f, d in event_fields])
+  try:
+    print u"\t".join([str(event.get(f, d)) for f, d in event_fields])
+  except UnicodeEncodeError:
+    pass
 
 def print_event_json(options, event):
   print json.dumps(event)
@@ -101,7 +104,7 @@ def engagement(env, options, session_delay, events_indices, info):
     info["country"] = country
     info["city"] = random_city(country)
   else:
-    event_type = "click" if random.random() < options.click_through_rate else "impression"
+    event_type = u"click" if random.random() < options.click_through_rate else u"impression"
     info["ad_network"] = next_popular_adnetwork()
     campaign = random_campaign(env.now)
     info["campaign"] = str(campaign)
@@ -112,7 +115,7 @@ def engagement(env, options, session_delay, events_indices, info):
 
   yield env.timeout(engagement_delay())
 
-  install_time = send_event(options, env, "install", info)
+  install_time = send_event(options, env, u"install", info)
 
   user_retention_coeff = next_user_retention_coeff()
   retention_days = 100 * user_retention_coeff
@@ -122,7 +125,7 @@ def engagement(env, options, session_delay, events_indices, info):
   total_seconds = retention_days * 86400
 
   while total_seconds > 0:
-    send_event(options, env, "session", info, install_time)
+    send_event(options, env, u"session", info, install_time)
 
     for e in range(events_per_session_gen()):
       inapp_delay = random.randint(3, 20)
@@ -130,7 +133,7 @@ def engagement(env, options, session_delay, events_indices, info):
       inapp_info = info.copy()
       inapp_info["revenue"] = revenue_gen()
       inapp_info["event_name"] = random_inapp_event(events_indices)
-      send_event(options, env, "inappevent", inapp_info, install_time)
+      send_event(options, env, u"inappevent", inapp_info, install_time)
       total_seconds -= inapp_delay
 
     total_seconds -= session_delay

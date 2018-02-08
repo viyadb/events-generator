@@ -4,6 +4,7 @@ import numpy
 
 def adnetwork_generator(outliers=3):
   """Create generator function that returns random Ad Network"""
+  global ad_networks
   ad_networks = load_file("networks.txt")
   dist = numpy.random.beta(0.1, 8, len(ad_networks))
   popular_dist = 5.0
