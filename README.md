@@ -1,6 +1,8 @@
 events-generator
 =================
 
+![Build Status](https://github.com/viyadb/events-generator/workflows/build/badge.svg)
+
 Framework for simulating mobile application user activity, and generating events from this activity.
 The project covers the following phases:
 
