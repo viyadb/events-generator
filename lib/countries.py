@@ -14,7 +14,7 @@ def random_city(country):
   cities = cities_by_country[country]
   return cities[random.randint(0, len(cities) - 1)]
 
-country_codes = cities_by_country.keys()
+country_codes = list(cities_by_country.keys())
 popular_countries = [u"IL", u"RU", u"TH", u"GB", u"FR", u"HK", u"CA", u"CH", u"IN", u"US"]
 country_codes.extend(popular_countries)
 

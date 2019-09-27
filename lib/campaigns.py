@@ -7,7 +7,7 @@ import random
 def campaign_length_generator():
   """Generates length of running campaigns in days"""
   values = numpy.random.beta(2, 8, 500)
-  lengths = [long(l * 10) for l in values]
+  lengths = [int(l * 10) for l in values]
   lengths = [l for l in lengths if l > 0]
   return RandomGenerator(lengths)
 
@@ -16,7 +16,7 @@ random_campaign_length = campaign_length_generator()
 def days_from_epoch(time):
   """This is not a correct days from epoch representation, but it's only
      used as a campaign identifier"""
-  return long(time / 86400)
+  return int(time / 86400)
 
 class Campaign(object):
   def __init__(self, idx, time_now):

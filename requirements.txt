@@ -1,0 +1,4 @@
+simpy>=3.0.10
+numpy>=1.12.1
+scipy>=0.19.1
+pytz

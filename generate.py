@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
 from lib.random import RandomGenerator
 from lib.res import load_file
@@ -22,7 +22,7 @@ import json
 def engagement_delay_generator():
   """Generates times between seeing or clicking on ad and installing an application"""
   values = numpy.random.beta(1, 100, 500)
-  times = [long(d * 10000) for d in values]
+  times = [int(d * 10000) for d in values]
   return RandomGenerator(times)
 
 engagement_delay = engagement_delay_generator()
@@ -52,29 +52,32 @@ event_fields = [
   ["revenue",           "0"]
 ]
 
+tsv_header_printed = False
 def print_tsv_header():
-  print u"\t".join([f for f, _ in event_fields])
-  print_tsv_header.func_code = (lambda:None).func_code
+  global tsv_header_printed
+  if not tsv_header_printed:
+      print(u"\t".join([f for f, _ in event_fields]))
+      tsv_header_printed = True
 
 def print_event_tsv(options, event):
   if options.output_header:
     print_tsv_header()
   try:
-    print u"\t".join([str(event.get(f, d)) for f, d in event_fields])
+    print(u"\t".join([str(event.get(f, d)) for f, d in event_fields]))
   except UnicodeEncodeError:
     pass
 
 def print_event_json(options, event):
-  print json.dumps(event)
+  print(json.dumps(event))
 
 def send_event(options, env, event_type, info, install_time = None):
   """Generates events from the info, and outputs it"""
   event = info.copy()
-  event_time = env.now * 1000L
+  event_time = env.now * 1000
   event["event_time"] = event_time
   event["event_type"] = event_type
   if install_time is not None:
-    event["days_from_install"] = int((event_time - install_time) / 86400000L)
+    event["days_from_install"] = int((event_time - install_time) / 86400000)
   options.output_format(options, event)
   options.events_num = options.events_num - 1
   if options.events_num == 0:
@@ -121,7 +124,7 @@ def engagement(env, options, session_delay, events_indices, info):
   retention_days = 100 * user_retention_coeff
   if info["organic"]:
     retention_days *= (retention_days * 0.012) + 1.46
-  retention_days = long(retention_days)
+  retention_days = int(retention_days)
   total_seconds = retention_days * 86400
 
   while total_seconds > 0:
@@ -140,7 +143,8 @@ def engagement(env, options, session_delay, events_indices, info):
     yield env.timeout(session_delay)
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser(usage="usage: %(prog)s [options]", version="%(prog)s 1.0")
+  parser = argparse.ArgumentParser(usage="usage: %(prog)s [options]")
+  parser.add_argument("-v", "--version", action="version", version="%(prog)s 1.0")
 
   parser.add_argument("-n", "--events-number",
       dest="events_num",
@@ -191,7 +195,7 @@ if __name__ == '__main__':
   options = parser.parse_args()
 
   env = simpy.Environment(
-    initial_time = long((options.start_date - datetime.datetime(1970, 1, 1, 0, 0, 0, 0, pytz.UTC)).total_seconds()),
+    initial_time = int((options.start_date - datetime.datetime(1970, 1, 1, 0, 0, 0, 0, pytz.UTC)).total_seconds()),
   )
   init_campaigns(env.now, options.campaigns_num)
   env.process(engagements(env, options))

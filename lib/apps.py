@@ -14,7 +14,7 @@ nonorg_probability_gen = WeightedRandomGenerator([0.52, 0.4, 0.2, 0.17, 0.16, 0.
 session_delay_gen = WeightedRandomGenerator([h * 3600 for h in range(1, 11)], sorted(numpy.random.beta(8, 8, 10)))
 
 # Different inapp events number per app:
-app_events_num_gen = RandomGenerator([long(r) + 1 for r in numpy.random.beta(3, 10, 100) * 10])
+app_events_num_gen = RandomGenerator([int(r) + 1 for r in numpy.random.beta(3, 10, 100) * 10])
 
 def random_events_indices():
   events_num = len(events)
@@ -39,7 +39,7 @@ next_popular_app = apps_generator()
 revenue_gen = RandomGenerator(numpy.random.beta(0.2, 10, 1000) * 10)
 
 # Number of events per session to generate
-events_per_session_gen = RandomGenerator([long(r) for r in numpy.random.beta(1, 4, 100) * 10])
+events_per_session_gen = RandomGenerator([int(r) for r in numpy.random.beta(1, 4, 100) * 10])
 
 def random_inapp_event(event_indices):
   return events[random.randint(event_indices[0], event_indices[1])]

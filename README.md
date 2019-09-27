@@ -115,10 +115,15 @@ docker run --log-driver=none --rm -ti \
 
 Please make sure you have the following dependencies installed on your computer.
 
- * Python 2.7
- * [SimPy](http://simpy.readthedocs.io/en/latest/) >= 3.0.10
- * [NumPy](http://www.numpy.org/) >= 1.12.1
- * [SciPy](https://scipy.org/) >= 0.19.1
+ * Python 3
+
+Run the following to prepare a runtime environment:
+
+```bash
+python3 -mvenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
 #### Configuration
 
