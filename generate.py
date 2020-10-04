@@ -19,6 +19,7 @@ import argparse
 import datetime
 import pytz
 import json
+import tqdm
 
 
 def engagement_delay_generator():
@@ -94,6 +95,7 @@ def send_event(options, env, event_type, info, install_time=None):
         event['days_from_install'] = int((event_time - install_time) / 86400)
     options.output_format(options, event)
     options.events_num = options.events_num - 1
+    options.pbar.update(1)
     if options.events_num == 0:
         sys.exit(0)
     return event_time
@@ -239,5 +241,7 @@ if __name__ == '__main__':
         (options.start_date -
          datetime.datetime(1970, 1, 1, 0, 0, 0, 0, pytz.UTC)).total_seconds()), )
     init_campaigns(env.now, options.campaigns_num)
-    env.process(engagements(env, options))
-    env.run()
+    with tqdm.tqdm(total=options.events_num, disable=None) as pbar:
+        options.pbar = pbar
+        env.process(engagements(env, options))
+        env.run()
