@@ -71,8 +71,7 @@ def print_event_tsv(options, event):
     if options.output_header:
         print_tsv_header()
     try:
-        print('\t'.join(
-            [str(event.get(f, d)) for f, d in event_fields_and_defaults]))
+        print('\t'.join([str(event.get(f, d)) for f, d in event_fields_and_defaults]))
     except UnicodeEncodeError:
         pass
 
@@ -81,15 +80,18 @@ def print_event_json(options, event):
     print(json.dumps(event))
 
 
+def time_format_iso(time_secs):
+    return datetime.datetime.utcfromtimestamp(time_secs).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
 def send_event(options, env, event_type, info, install_time=None):
     '''Generates events from the info, and outputs it'''
     event = info.copy()
-    event_time = env.now * 1000
-    event['event_time'] = event_time
+    event_time = env.now
+    event['event_time'] = options.time_format(event_time)
     event['event_type'] = event_type
     if install_time is not None:
-        event['days_from_install'] = int(
-            (event_time - install_time) / 86400000)
+        event['days_from_install'] = int((event_time - install_time) / 86400)
     options.output_format(options, event)
     options.events_num = options.events_num - 1
     if options.events_num == 0:
@@ -100,8 +102,7 @@ def send_event(options, env, event_type, info, install_time=None):
 def engagements(env, options, frequency=100):
     '''Generates new possible engagements based on random user and application'''
     while True:
-        app_id, nonorg_probability, session_delay, events_indices = next_popular_app(
-        )
+        app_id, nonorg_probability, session_delay, events_indices = next_popular_app()
         device = random_device()
         info = {
             'user_id': random.getrandbits(32),
@@ -110,8 +111,7 @@ def engagements(env, options, frequency=100):
             'device_vendor': device.vendor(),
             'organic': random.random() > nonorg_probability
         }
-        env.process(
-            engagement(env, options, session_delay, events_indices, info))
+        env.process(engagement(env, options, session_delay, events_indices, info))
         yield env.timeout(frequency)
 
 
@@ -162,76 +162,82 @@ def engagement(env, options, session_delay, events_indices, info):
 
 def parse_args():
     parser = argparse.ArgumentParser(usage='usage: %(prog)s [options]')
-    parser.add_argument(
-        '-v', '--version', action='version', version='%(prog)s 1.0')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
 
-    parser.add_argument(
-        '-n',
-        '--events-number',
-        dest='events_num',
-        type=int,
-        default=int(os.getenv('EVENTS_NUMBER', '-1')),
-        help='Number of events to generate')
+    parser.add_argument('-n',
+                        '--events-number',
+                        dest='events_num',
+                        type=int,
+                        default=int(os.getenv('EVENTS_NUMBER', '-1')),
+                        help='Number of events to generate')
 
-    parser.add_argument(
-        '-c',
-        '--click-through-rate',
-        dest='click_through_rate',
-        type=float,
-        default=float(os.getenv('CLICK_THROUGH_RATE', '0.005')),
-        help='Click-through rate')
+    parser.add_argument('-c',
+                        '--click-through-rate',
+                        dest='click_through_rate',
+                        type=float,
+                        default=float(os.getenv('CLICK_THROUGH_RATE', '0.005')),
+                        help='Click-through rate')
 
-    parser.add_argument(
-        '-r',
-        '--campaigns-number',
-        dest='campaigns_num',
-        type=int,
-        default=int(os.getenv('CAMPAIGNS_NUMBER', '10000')),
-        help='Number of running campaigns at any time')
+    parser.add_argument('-r',
+                        '--campaigns-number',
+                        dest='campaigns_num',
+                        type=int,
+                        default=int(os.getenv('CAMPAIGNS_NUMBER', '10000')),
+                        help='Number of running campaigns at any time')
 
     def parse_datetime(d):
-        return datetime.datetime.strptime(d,
-                                          '%Y-%m-%d').replace(tzinfo=pytz.UTC)
+        return datetime.datetime.strptime(d, '%Y-%m-%d').replace(tzinfo=pytz.UTC)
 
-    parser.add_argument(
-        '-s',
-        '--start-date',
-        dest='start_date',
-        help='Events start date in format YYYY-MM-DD',
-        default=parse_datetime(os.getenv('START_DATE', '2015-01-01')),
-        type=parse_datetime)
+    parser.add_argument('-s',
+                        '--start-date',
+                        dest='start_date',
+                        help='Events start date in format YYYY-MM-DD',
+                        default=parse_datetime(os.getenv('START_DATE', '2015-01-01')),
+                        type=parse_datetime)
 
     def parse_output_format(f):
         if f == "json":
             return print_event_json
         if f == "tsv":
             return print_event_tsv
-        raise "Unsupported output format: %s" % f
+        raise f"Unsupported output format: {f}"
 
-    parser.add_argument(
-        '-f',
-        '--output-format',
-        dest='output_format',
-        help='Supported formats are: json, tsv',
-        default=os.getenv('OUTPUT_FORMAT', 'json'),
-        type=parse_output_format)
+    parser.add_argument('-f',
+                        '--output-format',
+                        dest='output_format',
+                        help='Supported formats are: json, tsv',
+                        default=os.getenv('OUTPUT_FORMAT', 'json'),
+                        type=parse_output_format)
 
-    parser.add_argument(
-        '-H',
-        '--output-header',
-        dest='output_header',
-        help='Whether to output TSV header',
-        default=os.getenv('OUTPUT_HEADER') is not None,
-        action='store_true')
+    def parse_time_format(f):
+        if f == "timestamp_millis":
+            return lambda x: x * 1000
+        if f == "iso":
+            return time_format_iso
+        raise f"Unsupported time format: {f}"
+
+    parser.add_argument('-t',
+                        '--time-format',
+                        dest='time_format',
+                        help='Supported time formats are: timestamp_millis, iso',
+                        default=os.getenv('TIME_FORMAT', 'timestamp_millis'),
+                        type=parse_time_format)
+
+    parser.add_argument('-H',
+                        '--output-header',
+                        dest='output_header',
+                        help='Whether to output TSV header',
+                        default=os.getenv('OUTPUT_HEADER') is not None,
+                        action='store_true')
 
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     options = parse_args()
-    env = simpy.Environment(
-        initial_time=int((options.start_date - datetime.datetime(
-            1970, 1, 1, 0, 0, 0, 0, pytz.UTC)).total_seconds()), )
+    env = simpy.Environment(initial_time=int(
+        (options.start_date -
+         datetime.datetime(1970, 1, 1, 0, 0, 0, 0, pytz.UTC)).total_seconds()), )
     init_campaigns(env.now, options.campaigns_num)
     env.process(engagements(env, options))
     env.run()

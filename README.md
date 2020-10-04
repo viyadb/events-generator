@@ -103,6 +103,7 @@ To configure events generator behavior when running in Docker use the following 
 | START\_DATE | Events start date in format YYYY-MM-DD | 2015-01-01 |
 | OUTPUT\_FORMAT | Events output format. Supported formats: json, tsv | json |
 | OUTPUT\_HEADER | Whether to print TSV header | False |
+| TIME\_FORMAT | Output time format. Supported formats are: timestamp\_millis, iso | timestamp\_millis |
 
 For example, to have events generator produce content in TSV format use:
 
