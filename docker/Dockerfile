@@ -5,17 +5,21 @@ LABEL Description="Mobile users activity events simulator"
 
 ADD repositories /etc/apk/repositories
 
+ENV PATH="/opt/venv/bin:$PATH"
+
 RUN apk add --no-cache --update \
       python3 \
       py3-pip \
       py3-scipy \
       py3-numpy \
-    && pip3 --no-cache-dir install \
+    && python3 -m venv --system-site-packages /opt/venv \
+    && pip --no-cache-dir install \
       simpy \
-      pytz
+      pytz \
+      tqdm
 
 ADD tarball.tgz /opt
 
 WORKDIR "/opt/events-generator"
-CMD ["/usr/bin/python3", "/opt/events-generator/generate.py"]
+ENTRYPOINT ["python", "/opt/events-generator/generate.py"]
 
